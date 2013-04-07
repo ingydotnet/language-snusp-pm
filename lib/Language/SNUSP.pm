@@ -280,7 +280,8 @@ Ingy döt Net <ingy@cpan.org>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2004. Rick Klement.
+Copyright (c) 2004. Rick Klement.
+
 Copyright (c) 2013. Ingy döt Net.
 
 This program is free software; you can redistribute it and/or modify it
