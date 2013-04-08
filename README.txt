@@ -8,7 +8,7 @@ SYNOPSIS
 DESCRIPTION
     SNUSP is a two-dimensional programming language described here:
 
-    * http://rosettacode.org/wiki/Category:SNUSP *
+    http://rosettacode.org/wiki/Category:SNUSP
     http://c2.com/cgi/wiki?SnuspLanguage
 
     Here is the well known FizzBuzz algorithm in SNUSP:
