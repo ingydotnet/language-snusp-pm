@@ -1,16 +1,150 @@
 use strict;
 package Language::SNUSP;
 
-our $VERSION = '0.0.1';
+our $VERSION = '0.0.2';
 
-my $debug = 0;
-my $trace = 0;
-my $input = '';
+my $input = '';     # SNUSP input
+my $code = '';      # 2D code matrix
+my $width = 1;      # 2D code width
+my $pos = 0;        # 2D code execution pointer
+my $max = 0;        # Maximum pos value (length of code)
+my $dir = 1;        # Execution direction:
+                    #   1=right -1=left $width=down -$width=up
+my @data = (0);     # Data slots
+my $index = 0;      # Data slot index
+my @stack = ();     # Subroutine call stack
+
+# I/O handlers
+my $put = sub { print shift };
+# XXX input not working yet…
+my $get = sub { shift(@ARGV) };
+
+# SNUSP opcode handler lookup table.
+my %ops = (
+    '>'  => sub { $data[++$index] ||= 0 },
+    '<'  => sub { --$index >= 0 or $dir = 0 },
+    '+'  => sub { ++$data[$index] },
+    '-'  => sub { --$data[$index] },
+    ','  => sub { $data[$index] = ord $get->() },
+    '.'  => sub { $put->(chr $data[$index]) },
+    '/'  => sub { $dir = -$width / $dir },
+    '\\' => sub { $dir = $width / $dir },
+    '!'  => sub { $pos += $dir },
+    '?'  => sub { $pos += $dir if $data[$index] == 0 },
+    '@'  => sub { push @stack, [ $pos + $dir, $dir ] },
+    '#'  => sub { @stack ? ($pos, $dir) = @{pop @stack} : $dir = 0 },
+    "\n" => sub { $dir = 0 },
+);
+
+# Runtime flags
+my $file;           # Input SNUSP file
+my $trace = 0;      # Run with trace execution
+my $debug = 0;      # Run with 2D Curses debugger
 
 sub run {
     my ($class, @args) = @_;
-    while (@args) {
-        my $arg = shift @args;
+    $class->get_options(@args);
+
+    open my $fh, '<', $file or die "Can't open '$file' for input.\n";
+    $input = do { local $/; <$fh> };
+    close $fh;
+
+    for ($input =~ /^.*\n/gm) {
+        $code .= $_;
+        $width = length if length > $width;
+    }
+    $code =~ s/^.*/$& . ' ' x ($width - length $&) . "\n"/gem;
+    $max = length($code) - 1;
+    $width += 2;
+    $pos = $code =~ /\$/ * $-[0];
+
+    $trace ? run_trace() :
+    $debug ? run_debug() :
+             run_normal();
+
+    exit $data[$index];
+}
+
+sub run_normal {
+    while ($dir) {
+        if (my $op = $ops{substr $code, $pos, 1}) { &$op }
+        $pos += $dir;
+        last if $pos < 0 or $pos > $max;
+    }
+}
+
+sub run_trace {
+    my $count = 1;
+    while ($dir) {
+        my $char = substr $code, $pos, 1;
+        print $count++ . ") op: $char (@data)[$index]\n";
+        if (my $op = $ops{$char}) { &$op }
+        $pos += $dir;
+        last if $pos < 0 or $pos > $max;
+        print "\n" if $char eq '.';
+    }
+}
+
+sub run_debug {
+    require Curses; Curses->import;
+    require Term::ReadKey; Term::ReadKey->import;
+
+    initscr();
+    ReadMode(3);
+
+    my $y = 0;
+    addstr(
+        $y++, 0,
+        "(+)faster (-)slower (SPACE)stop/start (n)ext (q)uit",
+    );
+    my $top = ++$y;
+    addstr($y++, 0, $&) while $code =~ /.+/g;
+
+    my $count = 0;
+    my $key = '';
+    my $sleep = 0.1;
+    my $pause = 0;
+
+    my $out = '';
+    $put = sub { $out .= shift };
+    $get = sub { shift(@ARGV) };
+
+    while(1) {
+        if ($dir and (not $pause or $key eq "n")) {
+            $count++;
+            if (my $op = $ops{substr $code, $pos, 1}) { &$op }
+            last if $pos < 0 or $pos > $max;
+            $pos += $dir;
+            $pause = 1 if $dir == 0;
+        }
+
+        {
+            my $n = 0;
+            my $brace = join '', map {
+                $n++ == $index ? "[$_] " : "$_ "
+            } @data;
+            addstr($top - 1, 0, "t: $count  data: $brace");
+            addstr($y, 0, $out);
+            clrtoeol();
+            move(int($pos / $width) + $top, $pos % $width);
+            refresh();
+        }
+
+        $key = ReadKey($pause ? 0 : $sleep);
+        if ($key =~ /^[\+\=]$/) {$sleep -= 0.01 if $sleep > 0.011}
+        elsif ($key eq '-') {$sleep += 0.01}
+        elsif ($key eq ' ') {$pause = not $pause}
+        elsif ($key eq 'n') {$pause = 1}
+        elsif ($key eq 'q') {last}
+    }
+    ReadMode(0);
+    endwin();
+}
+
+sub get_options {
+    my ($class, @args) = @_;
+
+    for my $arg (@args) {
         if ($arg =~ /^(-v|--version)$/) {
             print "Language::SNUSP v$VERSION";
             exit 0;
@@ -30,166 +164,14 @@ sub run {
         if ($arg =~ /^-/) {
             die "Unknown option: '$arg'\n\n" . usage();
         }
-        if (not -f $arg) {
+        if (-f $arg) {
+            $file = $arg;
+        }
+        else {
             die "Input file '$arg' does not exist.\n";
         }
-        $input = $arg;
-        last;
     }
-    die usage() if @args or not $input;
-    open my $fh, '<', $input or die "Can't open '$input' for input.\n";
-    my $code = do {local $/; <$fh>};
-    close $fh;
-    if ($debug) {
-        exit $class->debugger($code);
-    }
-    else {
-        exit $class->runner($code);
-    }
-}
-
-sub runner {
-    my ($class, $input) = @_;
-    my ($dy, $p, $dir, $run, $code, @data, @stack, $op) =
-        (1, 0, 1, 1, '', 0);
-    $code .= $_, $dy < 2 + length and $dy = 2 + length
-        for $input =~ /^.*\n/gm;
-    $code =~ s/^.*/$& . ' ' x ($dy - 2 - length $&) . "\n"/gem;
-    my $ip = index $code, '$'; # find first $ or first char
-    $ip = 0 if $ip < 0;
-    my %ops = (
-        # RIGHT
-        '>'  => sub { ++$p },
-        # LEFT
-        '<'  => sub { $run-- if --$p < 0 },
-        # INCR
-        '+'  => sub { ++$data[$p] },
-        # DECR
-        '-'  => sub { --$data[$p] },
-        # READ
-        ','  => sub { $data[$p] = ord shift },
-        # WRITE
-        '.'  => sub { print chr $data[$p] },
-        # RULD
-        '/'  => sub { $dir = abs $dir == 1 ? -$dy * $dir : $dir / -$dy},
-        # LURD
-        '\\' => sub { $dir = abs $dir == 1 ? $dy * $dir : $dir / $dy},
-        # SKIP
-        '!'  => sub { $ip += $dir },
-        # SKIPZ
-        '?'  => sub { $ip += $dir unless $data[$p] },
-        # ENTER
-        '@'  => sub { push @stack, [ $ip + $dir, $dir ] },
-        # LEAVE
-        '#'  => sub { @stack ? ($ip, $dir) = @{pop @stack} : $run-- },
-        # STOP
-        "\n" => sub { $run-- },
-    );
-
-    if ($trace) {
-        while ($run and $ip >= 0 and $ip < length $code) {
-            my $ch = substr $code, $ip, 1;
-            print "op: $ch (@data)[$p]\n";
-            $op = $ops{$ch} and &$op;
-            $ip += $dir;
-            print "\n" if $ch eq '.';
-        }
-    }
-    else {
-        while ($run and $ip >= 0 and $ip < length $code) {
-            $op = $ops{substr $code, $ip, 1} and &$op;
-            $ip += $dir;
-        }
-    }
-    return $data[$p];
-}
-
-sub debugger {
-    my ($class, $input) = @_;
-    require Curses; Curses->import;
-    require Term::ReadKey; Term::ReadKey->import;
-
-    my ($dy, $dir, $p, @data, @stack, $op, $code, $ch) = (1, 1, 0, 0);
-    $code .= $_, $dy < length and $dy = length for $input =~ /^.*\n/gm;
-    $code =~ s/^.*/$& . ' ' x ($dy - length $&) . "\n"/gem;
-    $dy += 2;
-    my %lurd = (-1, -$dy, -$dy, -1, 1, $dy, $dy, 1);
-    my $ip = $code =~ /\$/ * $-[0]; # find first $ or first char
-    my @out = ();
-    my %ops = (
-        '>'  => sub { $data[++$p] += 0 },
-        '<'  => sub { --$p >= 0 or $dir = 0 },
-        '+'  => sub { ++$data[$p] },
-        '-'  => sub { --$data[$p] },
-        ','  => sub { $data[$p] = ord shift },
-        '.'  => sub { push @out, chr $data[$p] },
-        '/'  => sub { $dir = -$lurd{$dir} },
-        '\\' => sub { $dir =  $lurd{$dir} },
-        '!'  => sub { $ip += $dir },
-        '?'  => sub { $ip += $dir if $data[$p] == 0 },
-        '@'  => sub { push @stack, [ $ip + $dir, $dir ] },
-        '#'  => sub { @stack ? ($ip, $dir) = @{pop @stack} : ($dir = 0) },
-        "\n" => sub { $dir = 0 },
-    );
-
-    initscr();
-    ReadMode(3);
-
-    my $y = 0;
-    addstr($y++, 0, $&) while $code =~ /.+/g;
-    addstr(
-        ++$y + 2, 0,
-        "(space)togglepause (g)oto n (Enter)step (BS)backstep",
-    );
-    addstr(
-        $y + 3, 0,
-        "(r)estart (q)uit (+)fast (-)slow",
-    );
-    my $count = 0;
-    my @history;
-    my $key;
-    my $sleep = 0.1;
-    my $pause = 0;
-    my $number = 0;
-
-    while(1) {
-        if ($ip < 0) {$ip = 0; $dir = 0}
-        if ($ip >= length $code) {$ip = length($code) - 1; $dir = 0}
-        $pause = 1 if $dir == 0;
-        if ($dir and (not $pause or $key eq "\n")) {
-            $pause = 1
-                if $number and $count == $number - 1 or $key eq "\n";
-            $op = $ops{$ch = substr $code, $ip, 1} and &$op;
-            $ip += $dir;
-            $history[$count++] ||=
-                [$ip, $dir, $p, [@data], [@stack], [@ARGV], [@out] ];
-        }
-        my $n = 0;
-        my $brace = join '', map { $n++ == $p ? "[$_]" : " $_ " } @data;
-        my $s = "data: $brace   out: @out  t: $count  n: $number";
-        addstr($y, 0, $s);
-        clrtoeol();
-        move( int($ip / $dy), $ip % $dy);
-        refresh();
-        $key = ReadKey($pause ? 0 : $sleep);
-        if ($key eq 'q' or $key eq 'r') {last}
-        elsif ($key =~ /^[\+\=]$/) {$sleep -= 0.01 if $sleep > 0.011}
-        elsif ($key eq '-'){$sleep += 0.01}
-        elsif ($key eq "\e"){$number = 0}
-        elsif ($key =~ /\d/){$number = 10 * $number + $key}
-        elsif ($key eq ' '){$pause = not $pause}
-        elsif ($key eq 'g' || $key eq "\x08" and $number < @history) {
-            $count = $key eq 'g' ? $number : $count - 2;
-            ($ip, $dir, $p, my $data, my $stack, my $argv, my $out) =
-            @{$history[$count++]};
-            @data = @$data;
-            @stack = @$stack;
-            @ARGV = @$argv;
-            @out = @$out;
-        }
-    }
-    ReadMode(0);
-    endwin();
+    die usage() if not $file;
 }
 
 sub usage {
@@ -211,11 +193,12 @@ Options:
 
 =head1 NAME
 
-Language::SNUSP - A SNUSP interpreter written in Perl
+Language::SNUSP - A SNUSP Interpreter and Visual Debugger
 
 =head1 SYNOPSIS
 
     > snusp examples/fizzbuzz.snusp
+    > snusp --trace examples/fizzbuzz.snusp
     > snusp --debug examples/fizzbuzz.snusp
 
 =head1 DESCRIPTION
@@ -224,13 +207,13 @@ SNUSP is a two-dimensional programming language described here:
 
 =over
 
-=item http://rosettacode.org/wiki/Category:SNUSP
-
 =item http://c2.com/cgi/wiki?SnuspLanguage
+
+=item http://rosettacode.org/wiki/Category:SNUSP
 
 =back
 
-Here is the well known FizzBuzz algorithm in SNUSP:
+Here is the well known FizzBuzz algorithm, written in SNUSP:
 
             /               'B' @=@@=@@++++#
            // /             'u' @@@@@=@+++++#
@@ -270,13 +253,17 @@ Here is the well known FizzBuzz algorithm in SNUSP:
 
 This module installs a SNUSP interpreter so that you can run this code
 yourself. It also installs a visual debugger, to help you follow the flow of
-SNUSP programs. It is very cool to watch!
+SNUSP programs.
+
+Try it. It's very cool!
 
 =head1 CREDIT
 
-This code came from http://c2.com/cgi/wiki?SnuspLanguage
+This code originated from http://c2.com/cgi/wiki?SnuspLanguage but has been
+fairly heavily refactored to be clear, DRY and conform to modern Perl
+standards.
 
-I am just packaging it on CPAN and GitHub for easy installation and continued
+I have packaged it on CPAN and GitHub for easy installation and continued
 maintenance.
 
 =head1 AUTHOR

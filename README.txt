@@ -1,17 +1,18 @@
 NAME
-    Language::SNUSP - A SNUSP interpreter written in Perl
+    Language::SNUSP - A SNUSP Interpreter and Visual Debugger
 
 SYNOPSIS
         > snusp examples/fizzbuzz.snusp
+        > snusp --trace examples/fizzbuzz.snusp
         > snusp --debug examples/fizzbuzz.snusp
 
 DESCRIPTION
     SNUSP is a two-dimensional programming language described here:
 
-    http://rosettacode.org/wiki/Category:SNUSP
     http://c2.com/cgi/wiki?SnuspLanguage
+    http://rosettacode.org/wiki/Category:SNUSP
 
-    Here is the well known FizzBuzz algorithm in SNUSP:
+    Here is the well known FizzBuzz algorithm, written in SNUSP:
 
                 /               'B' @=@@=@@++++#
                // /             'u' @@@@@=@+++++#
@@ -51,12 +52,16 @@ DESCRIPTION
 
     This module installs a SNUSP interpreter so that you can run this code
     yourself. It also installs a visual debugger, to help you follow the
-    flow of SNUSP programs. It is very cool to watch!
+    flow of SNUSP programs.
+
+    Try it. It's very cool!
 
 CREDIT
-    This code came from http://c2.com/cgi/wiki?SnuspLanguage
+    This code originated from http://c2.com/cgi/wiki?SnuspLanguage but has
+    been fairly heavily refactored to be clear, DRY and conform to modern
+    Perl standards.
 
-    I am just packaging it on CPAN and GitHub for easy installation and
+    I have packaged it on CPAN and GitHub for easy installation and
     continued maintenance.
 
 AUTHOR

@@ -1,4 +1,9 @@
 ---
+version: 0.0.2
+date:    Mon Apr  8 00:39:26 PDT 2013
+changes:
+- Heavy refactoring to DRY out the code.
+---
 version: 0.0.1
 date:    Sun Apr  7 10:25:23 PDT 2013
 changes:
