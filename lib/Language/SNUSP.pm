@@ -222,8 +222,13 @@ Language::SNUSP - A SNUSP interpreter written in Perl
 
 SNUSP is a two-dimensional programming language described here:
 
-* http://rosettacode.org/wiki/Category:SNUSP
-* http://c2.com/cgi/wiki?SnuspLanguage
+=over
+
+=item http://rosettacode.org/wiki/Category:SNUSP
+
+=item http://c2.com/cgi/wiki?SnuspLanguage
+
+=back
 
 Here is the well known FizzBuzz algorithm in SNUSP:
 
