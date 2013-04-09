@@ -10,14 +10,16 @@ my $pos = 0;        # 2D code execution pointer
 my $max = 0;        # Maximum pos value (length of code)
 my $dir = 1;        # Execution direction:
                     #   1=right -1=left $width=down -$width=up
+my @args = ();      # Program input list
 my @data = (0);     # Data slots
 my $index = 0;      # Data slot index
 my @stack = ();     # Subroutine call stack
+my $count = 0;      # Execution counter
 
+use XXX;
 # I/O handlers
 my $put = sub { print shift };
-# XXX input not working yet…
-my $get = sub { shift(@ARGV) };
+my $get = sub { substr shift(@args), 0, 1 };
 
 # SNUSP opcode handler lookup table.
 my %ops = (
@@ -74,10 +76,10 @@ sub run_normal {
 }
 
 sub run_trace {
-    my $count = 1;
     while ($dir) {
         my $char = substr $code, $pos, 1;
-        print $count++ . ") op: $char (@data)[$index]\n";
+        $count++;
+        print trace_line() . "\n";
         if (my $op = $ops{$char}) { &$op }
         $pos += $dir;
         last if $pos < 0 or $pos > $max;
@@ -100,14 +102,12 @@ sub run_debug {
     my $top = ++$y;
     addstr($y++, 0, $&) while $code =~ /.+/g;
 
-    my $count = 0;
     my $key = '';
     my $sleep = 0.1;
     my $pause = 0;
 
     my $out = '';
     $put = sub { $out .= shift };
-    $get = sub { shift(@ARGV) };
 
     while(1) {
         if ($dir and (not $pause or $key eq "n")) {
@@ -119,11 +119,7 @@ sub run_debug {
         }
 
         {
-            my $n = 0;
-            my $brace = join '', map {
-                $n++ == $index ? "[$_] " : "$_ "
-            } @data;
-            addstr($top - 1, 0, "t: $count  data: $brace");
+            addstr($top - 1, 0, trace_line());
             addstr($y, 0, $out);
             clrtoeol();
             move(int($pos / $width) + $top, $pos % $width);
@@ -141,34 +137,46 @@ sub run_debug {
     endwin();
 }
 
-sub get_options {
-    my ($class, @args) = @_;
+sub trace_line {
+    my $n = 0;
+    my $display = join '', map {
+        $n++ == $index ? "[$_] " : "$_ "
+    } @data;
+    return "$count)  \@${\scalar @stack}  < $display>";
+}
 
-    for my $arg (@args) {
-        if ($arg =~ /^(-v|--version)$/) {
+sub get_options {
+    my ($class, @options) = @_;
+
+    for my $option (@options) {
+        if ($option =~ /^(-v|--version)$/) {
             print "Language::SNUSP v$VERSION";
             exit 0;
         }
-        if ($arg =~ /^(-\?|-h|--help)$/) {
+        if ($option =~ /^(-\?|-h|--help)$/) {
             die usage();
             exit 0;
         }
-        if ($arg =~ /^(-d|--debug)$/) {
+        if ($option =~ /^(-d|--debug)$/) {
             $debug = 1;
             next;;
         }
-        if ($arg =~ /^(-t|--trace)$/) {
+        if ($option =~ /^(-t|--trace)$/) {
             $trace = 1;
             next;
         }
-        if ($arg =~ /^-/) {
-            die "Unknown option: '$arg'\n\n" . usage();
+        if ($option =~ /^-/) {
+            die "Unknown option: '$option'\n\n" . usage();
         }
-        if (-f $arg) {
-            $file = $arg;
+        if ($file) {
+            push @args, $option;
+            next;
+        }
+        if (-f $option) {
+            $file = $option;
         }
         else {
-            die "Input file '$arg' does not exist.\n";
+            die "Input file '$option' does not exist.\n";
         }
     }
     die usage() if not $file;
