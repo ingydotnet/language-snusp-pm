@@ -16,7 +16,6 @@ my $index = 0;      # Data slot index
 my @stack = ();     # Subroutine call stack
 my $count = 0;      # Execution counter
 
-use XXX;
 # I/O handlers
 my $put = sub { print shift };
 my $get = sub { substr shift(@args), 0, 1 };
