@@ -1,6 +1,6 @@
 ---
 version: 0.0.3
-date:    Mon Apr  8 00:39:26 PDT 2013
+date:    Wed Apr 10 13:55:10 PDT 2013
 changes:
 - Support input to programs
 - Add all the runnable c2 code snippets to the examples directory.
