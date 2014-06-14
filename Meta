@@ -1,0 +1,26 @@
+=meta: 0.0.1
+
+name: Language-SNUSP
+version: 0.0.4
+abstract: A SNUSP Interpreter and Visual Debugger
+homepage: http://esolangs.org/wiki/SNUSP
+
+license: perl
+copyright: 2013-2014. Ingy döt Net.
+author:
+  name: Ingy döt Net
+  email: ingy@cpan.org
+  github: ingydotnet
+  twitter: ingydotnet
+  freenode: ingy
+  homepage: http://ingy.net
+
+requires:
+  perl: 5.8.1
+  Curses: 0
+
+devel:
+  git: git@github.org/ingydotnet/language-snusp-pm
+  bug: https://github.com/ingydotnet/language-snusp-pm/issues/
+
+=travis: perl

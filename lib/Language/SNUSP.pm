@@ -1,8 +1,6 @@
 use strict;
 package Language::SNUSP;
 
-our $VERSION = '0.0.2';
-
 my $input = '';     # SNUSP input
 my $code = '';      # 2D code matrix
 my $width = 1;      # 2D code width
@@ -149,7 +147,8 @@ sub get_options {
 
     for my $option (@options) {
         if ($option =~ /^(-v|--version)$/) {
-            print "Language::SNUSP v$VERSION";
+            no strict 'refs';
+            print qq!Language::SNUSP v${"VERSION"}!;
             exit 0;
         }
         if ($option =~ /^(-\?|-h|--help)$/) {
@@ -195,97 +194,3 @@ Options:
 }
 
 1;
-
-=encoding utf8
-
-=head1 NAME
-
-Language::SNUSP - A SNUSP Interpreter and Visual Debugger
-
-=head1 SYNOPSIS
-
-    > snusp examples/fizzbuzz.snusp
-    > snusp --trace examples/fizzbuzz.snusp
-    > snusp --debug examples/fizzbuzz.snusp
-
-=head1 DESCRIPTION
-
-SNUSP is a two-dimensional programming language described here:
-
-=over
-
-=item http://c2.com/cgi/wiki?SnuspLanguage
-
-=item http://rosettacode.org/wiki/Category:SNUSP
-
-=back
-
-Here is the well known FizzBuzz algorithm, written in SNUSP:
-
-            /               'B' @=@@=@@++++#
-           // /             'u' @@@@@=@+++++#
-          // // /           'z' @=@@@@+@++++#
-         // // // /         'i' @@@@@@=+++++#
-        // // // // /       'F' @@@=@@+++++#
-       // // // // // /      LF  ++++++++++#
-      // // // // // // /   100 @@@=@@@=++++#
-    $@/>@/>@/>@/>@/>@/>@/\   0
-    /                    /
-    !                             /======= Fizz <<<.<.<..>>>#
-    /                             |      \
-    \?!#->+ @\.>?!#->+ @\.>?!#->+@/.>\   |
-    /        !          !         !  /   |
-    \?!#->+ @\.>?!#->+@\ .>?!#->+@/.>\   |
-    /        !         \!===\!    !  /   |
-    \?!#->+ @\.>?!#->+ @\.>?!#->+@/.>\   |
-    /        !          !   |     !  /   |
-    \?!#->+@\ .>?!#->+ @\.>?!#->+@/.>\   |
-    /       \!==========!===\!    !  /   |
-    \?!#->+ @\.>?!#->+ @\.>?!#->+@/>>@\.>/
-             !          |   |         |
-             /==========/   \========!\=== Buzz <<<<<<<.>.>..>>>#
-             |
-             \!/=dup==?\>>@\<!/back?\<<<#
-               \<<+>+>-/   |  \>+<- /
-                           |
-    /======================/
-    |
-    |       /recurse\    #/?\ zero
-    \print=!\@\>?!\@/<@\.!\-/
-              |   \=/  \=itoa=@@@+@+++++#
-              !     /+ !/+ !/+ !/+   \    mod10
-              /<+> -\!?-\!?-\!?-\!?-\!
-              \?!\-?!\-?!\-?!\-?!\-?/\    div10
-                 #  +/! +/! +/! +/! +/
-
-This module installs a SNUSP interpreter so that you can run this code
-yourself. It also installs a visual debugger, to help you follow the flow of
-SNUSP programs.
-
-Try it. It's very cool!
-
-=head1 CREDIT
-
-This code originated from http://c2.com/cgi/wiki?SnuspLanguage but has been
-fairly heavily refactored to be clear, DRY and conform to modern Perl
-standards.
-
-I have packaged it on CPAN and GitHub for easy installation and continued
-maintenance.
-
-=head1 AUTHOR
-
-Ingy döt Net <ingy@cpan.org>
-
-=head1 COPYRIGHT AND LICENSE
-
-Copyright (c) 2004. Rick Klement.
-
-Copyright (c) 2013. Ingy döt Net.
-
-This program is free software; you can redistribute it and/or modify it
-under the same terms as Perl itself.
-
-See http://www.perl.com/perl/misc/Artistic.html
-
-=cut
