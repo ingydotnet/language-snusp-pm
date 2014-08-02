@@ -1,7 +1,7 @@
 =meta: 0.0.1
 
 name: Language-SNUSP
-version: 0.0.5
+version: 0.0.6
 abstract: A SNUSP Interpreter and Visual Debugger
 homepage: http://esolangs.org/wiki/SNUSP
 
@@ -22,5 +22,8 @@ requires:
 devel:
   git: https://github.com/ingydotnet/language-snusp-pm
   bug: https://github.com/ingydotnet/language-snusp-pm/issues
+  irc: irc.freenode.net#pkg
 
-=travis: perl
+=travis:
+  type: perl
+  irc: irc.freenode.net#pkg
