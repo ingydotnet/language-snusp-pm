@@ -1,7 +1,7 @@
 =meta: 0.0.1
 
 name: Language-SNUSP
-version: 0.0.6
+version: 0.0.7
 abstract: A SNUSP Interpreter and Visual Debugger
 homepage: http://esolangs.org/wiki/SNUSP
 
