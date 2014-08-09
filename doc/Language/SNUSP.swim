@@ -62,7 +62,7 @@ SNUSP programs.
 
 Try it. It's very cool!
 
-=head1 CREDIT
+= Credit
 
 This code originated from http://c2.com/cgi/wiki?SnuspLanguage but has been
 fairly heavily refactored to be clear, DRY and conform to modern Perl
@@ -71,11 +71,11 @@ standards.
 I have packaged it on CPAN and GitHub for easy installation and continued
 maintenance.
 
-=head1 AUTHOR
+= Author
 
 Ingy döt Net <ingy@cpan.org>
 
-=head1 COPYRIGHT AND LICENSE
+= Copyright and License
 
 Copyright 2004. Rick Klement.
 
