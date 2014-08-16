@@ -1,6 +1,6 @@
 use strict;
 package Language::SNUSP;
-our $VERSION = '0.0.9';
+our $VERSION = '0.0.10';
 
 my $input = '';     # SNUSP input
 my $code = '';      # 2D code matrix
