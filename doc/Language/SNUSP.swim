@@ -18,7 +18,7 @@ SNUSP is a two-dimensional programming language described here:
 * http://c2.com/cgi/wiki?SnuspLanguage
 * http://rosettacode.org/wiki/Category:SNUSP
 
-Here is the well known FizzBuzz algorithm, written in SNUSP:
+Here is the well-known FizzBuzz algorithm, written in SNUSP:
 
           /               'B' @=@@=@@++++#
          // /             'u' @@@@@=@+++++#
@@ -45,7 +45,7 @@ Here is the well known FizzBuzz algorithm, written in SNUSP:
            |
            \!/=dup==?\>>@\<!/back?\<<<#
              \<<+>+>-/   |  \>+<- /
-                         |
+                        |
   /======================/
   |
   |       /recurse\    #/?\ zero

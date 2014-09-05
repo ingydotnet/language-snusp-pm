@@ -1,4 +1,9 @@
 ---
+version: 0.0.13
+date:    Thu Sep  4 19:54:12 MDT 2014
+changes:
+- Added the long missing hyphen from 'well-known'!!!
+---
 version: 0.0.12
 date:    Sat Aug 16 16:07:44 PDT 2014
 changes:

@@ -1,7 +1,7 @@
 =meta: 0.0.2
 
 name: Language-SNUSP
-version: 0.0.12
+version: 0.0.13
 abstract: A SNUSP Interpreter and Visual Debugger
 homepage: http://esolangs.org/wiki/SNUSP
 language: perl
