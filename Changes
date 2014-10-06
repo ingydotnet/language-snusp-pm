@@ -1,4 +1,10 @@
 ---
+version: 0.0.14
+date:    Mon Oct  6 21:26:59 CEST 2014
+changes:
+- Fix debugger warning
+- Debugging begins in a 'stopped' state.
+---
 version: 0.0.13
 date:    Thu Sep  4 19:54:12 MDT 2014
 changes:

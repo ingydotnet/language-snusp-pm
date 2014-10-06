@@ -1,6 +1,6 @@
 use strict; use warnings;
 package Language::SNUSP;
-our $VERSION = '0.0.13';
+our $VERSION = '0.0.14';
 
 my $input = '';     # SNUSP input
 my $code = '';      # 2D code matrix
@@ -95,14 +95,14 @@ sub run_debug {
     my $y = 0;
     addstr(
         $y++, 0,
-        "(+)faster (-)slower (SPACE)stop/start (n)ext (q)uit",
+        "(n)ext (SPACE)stop/start (+)faster (-)slower (q)uit",
     );
     my $top = ++$y;
     addstr($y++, 0, $&) while $code =~ /.+/g;
 
     my $key = '';
     my $sleep = 0.1;
-    my $pause = 0;
+    my $pause = 1;
 
     my $out = '';
     $put = sub { $out .= shift };
@@ -124,6 +124,7 @@ sub run_debug {
             refresh();
         }
 
+        no warnings 'uninitialized';
         $key = ReadKey($pause ? 0 : $sleep);
         if ($key =~ /^[\+\=]$/) {$sleep -= 0.01 if $sleep > 0.011}
         elsif ($key eq '-') {$sleep += 0.01}
@@ -158,7 +159,7 @@ sub get_options {
         }
         if ($option =~ /^(-d|--debug)$/) {
             $debug = 1;
-            next;;
+            next;
         }
         if ($option =~ /^(-t|--trace)$/) {
             $trace = 1;
