@@ -1,12 +1,12 @@
 =meta: 0.0.2
 
 name: Language-SNUSP
-version: 0.0.14
+version: 0.0.15
 abstract: A SNUSP Interpreter and Visual Debugger
 homepage: http://esolangs.org/wiki/SNUSP
 language: perl
 license: perl
-copyright: 2013-2014
+copyright: 2013-2017
 
 author:
   name: Ingy döt Net
